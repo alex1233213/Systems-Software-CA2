@@ -9,4 +9,4 @@ client: client.c
 
 
 server: server.c
-	$(CC) server.c -o server
+	$(CC) server.c -o server -lpthread

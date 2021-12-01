@@ -3,6 +3,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <stdio.h>
 
 int main(int argc, char *argv[]) { 
 	int SID;
@@ -34,30 +35,32 @@ int main(int argc, char *argv[]) {
 	printf("Connected to the server ok\n");
 
 
-	while(1) {
-		printf("\nEnter message: ");
-		scanf("%s", clientMessage);
-
-		if( send(SID, clientMessage, strlen(clientMessage), 0) < 0)
-		{
-			printf("send failed\n");
-			return 1;
-		}
-		
-		if( recv(SID, serverMessage, 500, 0) < 0)
-		{ 
-			printf("IO error\n");
-			break;
-		}
-
-		printf("\nserver sent: ");
-		printf(serverMessage);
-
+	//send init transfer message to the server
+	if( send(SID, "initTransfer", strlen("initTransfer"), 0) < 0)
+	{
+		printf("send failed\n");
+		return 1;
 	}
+	
+
+	//receive from the server
+	if( recv(SID, serverMessage, 500, 0) < 0)
+	{ 
+		printf("IO error\n");
+	}
+
+
+	printf("\nserver sent: ");
+	printf(serverMessage);
+
 
 	close(SID);
 	return 0;
 }
 
 
+//	while(1) {
+//		printf("\nEnter message: ");
+//		scanf("%s", clientMessage);
+//	}
 

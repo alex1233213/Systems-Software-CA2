@@ -1,4 +1,6 @@
 #include <sys/socket.h>
+#include <stdlib.h>
+#include <errno.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -24,7 +26,7 @@ int main() {
 	//create socket	
 	socket_desc = socket(AF_INET, SOCK_STREAM, 0);
 
-	if(s == -1) { 
+	if( socket_desc == -1) { 
 		printf("Could not create socket\n");
 	} else { 
 		printf("Socket successfully created!!\n");
@@ -56,7 +58,7 @@ int main() {
 	while( (client_sock = accept(socket_desc, (struct sockaddr *) &client, (socklen_t *) &conSize )))
        	{
 		puts("Connection accepted\n");
-		if( pthread_create( &thread_id, NULL, connection_handler, (void*) &client_sock) < 0) {
+		if( pthread_create( &tid, NULL, connection_handler, (void*) &client_sock) < 0) {
 			perror("could not create thread");
 			return 1;
 		}
@@ -89,7 +91,7 @@ void *connection_handler(void *socket_desc) {
 
 	if(strcmp(msg, "initTransfer") == 0) {
 		printf("Init Transfer\n");
-		write(sock, "filename", strlen("filename");
+		write(sock, "filename", strlen("filename") );
 		memset(msg, 0, 500);
 	}
 
@@ -123,7 +125,7 @@ void *connection_handler(void *socket_desc) {
 				
 				int write_sz = fwrite(revbuf, sizeof(char), fr_block_sz, fr);
 				if(write_sz < fr_block_sz) { 
-					error("File write failed on the server\n");
+					perror("File write failed on the server\n");
 				}
 
 				bzero(revbuf, LENGTH);
