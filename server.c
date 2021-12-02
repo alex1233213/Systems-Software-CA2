@@ -89,16 +89,18 @@ void *connection_handler(void *socket_desc) {
 	//read message from the client
 	READSIZE = recv(sock, msg, 500, 0);
 
+	//if the client requested to transfer
 	if(strcmp(msg, "initTransfer") == 0) {
 		printf("Init Transfer\n");
 		write(sock, "filename", strlen("filename") );
-	//	memset(msg, 0, 500);
-	}
+		//memset(msg, 0, 500);
+	} 
 
 
 	memset(msg, 0, 500);
 	READSIZE = recv(sock, msg, 500, 0);
 
+	//if not initTransfer then expect from the client the name of the file
 	if( strcmp(msg, "initTransfer") != 0 && strlen(msg) > 0) { 
 		printf("File\n");
 		write(sock, "begin", strlen("begin") );
@@ -106,11 +108,13 @@ void *connection_handler(void *socket_desc) {
 		
 
 		//receive file from client
-		char *fr_path = "/home/alex/Desktop/ca2/server_upload_dir/";
+		char *fr_path = "/home/alex/Desktop/ca2/server_upload_files/";
 		char revbuf[LENGTH];
 		char *fr_name = (char *) malloc( 1 + strlen(fr_path) + strlen(msg) );
 		strcpy( fr_name, fr_path );
 		strcat( fr_name, msg );
+		printf("fr_name: %s\n", fr_name);
+
 
 		FILE *fr = fopen(fr_name, "w");
 		if(fr == NULL) {
@@ -133,14 +137,11 @@ void *connection_handler(void *socket_desc) {
 
 			}
 
-			if(fr_block_sz < 0) { 
-				if(errno == EAGAIN) { 
-					printf("recv() timed out\n");
-				}
-			} else {
+			if(fr_block_sz < 0) { 			
 				fprintf(stderr, "recv() failed due to error = %d\n", errno);
 				exit(1);
 			}
+
 		}
 
 		printf("Ok received from the client\n");

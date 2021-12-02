@@ -46,17 +46,19 @@ int main(int argc, char *argv[]) {
 		printf("send failed\n");
 		return 1;
 	}
+
 	
+	int len;
 
 	//receive reply from the server
-	if( recv(SID, serverMessage, strlen("filename"), 0) < 0)
+	if( (len = recv(SID, serverMessage, strlen("filename"), 0)) < 0)
 	{ 
 		printf("IO error\n");
 	}
 
-
-	printf("\nserver sent: ");
-	printf(serverMessage);
+	serverMessage[len] = '\0';
+	printf("server sent %s\n", serverMessage);	
+	//printf(serverMessage);
 
 	
 	if(strcmp(serverMessage, "filename") == 0 ) { 
@@ -76,9 +78,9 @@ int main(int argc, char *argv[]) {
 		printf("IO error\n");
 	}
 
-	printf("Server sent %s of length %d", serverMessage, strlen(serverMessage) );
+	printf("Server sent %s of length %d\n", serverMessage, strlen(serverMessage) );
 
-	if( strcmp(serverMessage, "begin") == 0) {
+	if( strcmp(serverMessage, "begin") == 0 ) {
 		printf("sending file %s\n", filename);
 
 		char *fs_path = "/home/alex/Desktop/ca2/client_files/";
