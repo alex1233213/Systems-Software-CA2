@@ -92,7 +92,7 @@ void *connection_handler(void *socket_desc) {
 	if(strcmp(msg, "initTransfer") == 0) {
 		printf("Init Transfer\n");
 		write(sock, "filename", strlen("filename") );
-		memset(msg, 0, 500);
+	//	memset(msg, 0, 500);
 	}
 
 
@@ -106,7 +106,7 @@ void *connection_handler(void *socket_desc) {
 		
 
 		//receive file from client
-		char *fr_path = "/home/alex/Desktop/ca2/server_upload_dir";
+		char *fr_path = "/home/alex/Desktop/ca2/server_upload_dir/";
 		char revbuf[LENGTH];
 		char *fr_name = (char *) malloc( 1 + strlen(fr_path) + strlen(msg) );
 		strcpy( fr_name, fr_path );

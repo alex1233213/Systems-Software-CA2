@@ -1,15 +1,20 @@
 #include <sys/socket.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <errno.h>
+
+#define LENGTH 512
 
 int main(int argc, char *argv[]) { 
 	int SID;
 	struct sockaddr_in server;
 	char clientMessage[500];
 	char serverMessage[500];	
+	char *filename = "index.html";
 
 
 	//create socket
@@ -43,8 +48,8 @@ int main(int argc, char *argv[]) {
 	}
 	
 
-	//receive from the server
-	if( recv(SID, serverMessage, 500, 0) < 0)
+	//receive reply from the server
+	if( recv(SID, serverMessage, strlen("filename"), 0) < 0)
 	{ 
 		printf("IO error\n");
 	}
@@ -53,14 +58,61 @@ int main(int argc, char *argv[]) {
 	printf("\nserver sent: ");
 	printf(serverMessage);
 
+	
+	if(strcmp(serverMessage, "filename") == 0 ) { 
+		printf("Sending file %s\n", filename);
+		
+		if( send(SID, filename, strlen(filename), 0) < 0 ) { 
+			printf("send failed\n");
+			return 1;
+		}
+
+	} 
+
+	memset(serverMessage, 0, 500);
+	
+	//receive reply from the server
+	if( recv(SID, serverMessage, 500, 0) < 0) { 
+		printf("IO error\n");
+	}
+
+	printf("Server sent %s of length %d", serverMessage, strlen(serverMessage) );
+
+	if( strcmp(serverMessage, "begin") == 0) {
+		printf("sending file %s\n", filename);
+
+		char *fs_path = "/home/alex/Desktop/ca2/client_files/";
+		char *fs_name = (char * ) malloc( 1 + strlen(fs_path) + strlen(filename) );
+		strcpy(fs_name, fs_path);
+		strcat(fs_name, filename);
+
+		char sdbuf[LENGTH];
+		printf("Client sending %s to server ...\n", fs_name);
+		FILE *fs = fopen(fs_name, "r");
+		
+		if(fs == NULL) { 
+			printf("Error: %s, file not found\n", fs_name);
+			return 1;
+		}
+
+		bzero(sdbuf, LENGTH);
+		int fs_block_sz, i = 0;
+
+		while( (fs_block_sz = fread(sdbuf, sizeof(char), LENGTH, fs)) > 0 ) {
+			printf("Data sent %d = %d", i , fs_block_sz);
+			if( send(SID, sdbuf, fs_block_sz, 0) < 0) { 
+				fprintf(stderr, "Error: failed to send file %s, errorno: %d\n", fs_name, errno);
+				exit(1);
+			}
+			
+			bzero(sdbuf, LENGTH);
+			++i;
+		}
+	}
 
 	close(SID);
 	return 0;
 }
 
 
-//	while(1) {
-//		printf("\nEnter message: ");
-//		scanf("%s", clientMessage);
-//	}
 
