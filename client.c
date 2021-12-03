@@ -19,10 +19,7 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	} 
 
-
-	uid_t uid = getuid();
-	printf("uid of the user is %d\n", uid);
-
+	
 	int SID;
 	struct sockaddr_in server;
 	char clientMessage[500];
@@ -53,6 +50,20 @@ int main(int argc, char *argv[]) {
 
 	printf("Connected to the server ok\n");
 
+	
+	//get the group id of the user 
+	gid_t usr_group = getuid();
+	gid_t converted_usr_group = htonl(usr_group);
+	printf("group id  of the user is %d\n", converted_usr_group);
+
+
+	//send the group id of the user to the server
+	if( write(SID, &converted_usr_group, sizeof(converted_usr_group)) < 0) {
+		printf("send failed");
+	     	return 1;	
+	}
+
+
 
 	//send init transfer message to the server
 	if( send(SID, "initTransfer", strlen("initTransfer"), 0) < 0)
@@ -61,7 +72,7 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	
+
 	int len;
 
 	//receive reply from the server
@@ -72,9 +83,9 @@ int main(int argc, char *argv[]) {
 
 	serverMessage[len] = '\0';
 	printf("server sent %s\n", serverMessage);	
-	//printf(serverMessage);
 
-	
+
+	//send file name to the server	
 	if(strcmp(serverMessage, "filename") == 0 ) { 
 		printf("Sending file %s\n", filename);
 		

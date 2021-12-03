@@ -73,9 +73,10 @@ int main() {
 			return 1;
 		}
 
+		puts("handler assigned for client connection\n");
 		pthread_join(client_conn[thread_count], NULL);
 
-		puts("handler assigned for client connection\n");
+	
 		thread_count++;
 	}
 
@@ -95,12 +96,27 @@ void *connection_handler(void *socket_desc) {
 	int sock = *(int *) socket_desc;
 	char msg[500];
 	int READSIZE;
-	//char *message, client_message[2000];
+	gid_t client_usr_group;
 	
+	
+	//receive the client user group first	
+	READSIZE = recv(sock, &client_usr_group, sizeof(client_usr_group), 0);
+
+	if(READSIZE == -1) { 
+		printf("Error occurred in recv() call\n");
+		exit(1);
+	} else { 
+		printf( "client group id is %d\n", ntohl(client_usr_group) );
+		//write( sock, "groupIdRecv", strlen("groupIdRecv") );
+	}
+
+
 	memset(msg, 0, 500);
 	
 	//read message from the client
 	READSIZE = recv(sock, msg, 500, 0);
+
+
 
 	//if the client requested to transfer
 	if(strcmp(msg, "initTransfer") == 0) {
@@ -112,8 +128,6 @@ void *connection_handler(void *socket_desc) {
 	memset(msg, 0, 500);
 	READSIZE = recv(sock, msg, 500, 0);
 	
-	
-
 
 	//if not initTransfer then expect from the client the name of the file
 	if( strcmp(msg, "initTransfer") != 0 && strlen(msg) > 0) { 
@@ -186,8 +200,8 @@ void *connection_handler(void *socket_desc) {
 	}
 
 	return 0;
-
 }
+
 
 		
 
