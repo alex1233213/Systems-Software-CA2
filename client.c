@@ -10,12 +10,22 @@
 #define LENGTH 512
 
 int main(int argc, char *argv[]) { 
+
+	//expect 2 arguments, 
+	//first arg - program name 
+	//seconds arg - file to be transferred
+	if(argc != 2) {
+		printf("Invalid number of arguments, usage: ./client <file-name>\n");
+		exit(1);
+	} 
+
 	int SID;
 	struct sockaddr_in server;
 	char clientMessage[500];
 	char serverMessage[500];	
-	char *filename = "index.html";
-
+	//char *filename = "index.html";
+	char *filename = argv[1];
+	printf("File name passed from argument: %s\n", filename);
 
 	//create socket
 	SID = socket(AF_INET, SOCK_STREAM, 0);
