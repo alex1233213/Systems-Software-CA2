@@ -8,8 +8,11 @@
 #include <stdio.h>
 #include <pthread.h>
 
-
 #define LENGTH 512
+#define NUM_THREADS 100
+
+//mutex 
+pthread_mutex_t lock;
 
 void *connection_handler(void *);
 
@@ -20,6 +23,7 @@ int main() {
 	int READSIZE;
 
 
+	pthread_t client_conn[NUM_THREADS];
 	struct sockaddr_in server, client;
 	//char message[500];
 
@@ -53,17 +57,26 @@ int main() {
 	//accept any incoming connection
 	printf("Waiting for incoming connection from client\n");
 	conSize = sizeof(struct sockaddr_in);
+	
+	//pthread_t tid;
 
-	pthread_t tid;
+	int thread_count = 0;
+
+	//initialze mutex lock 
+	pthread_mutex_init(&lock, NULL);
+
 	while( (client_sock = accept(socket_desc, (struct sockaddr *) &client, (socklen_t *) &conSize )))
        	{
 		puts("Connection accepted\n");
-		if( pthread_create( &tid, NULL, connection_handler, (void*) &client_sock) < 0) {
+		if( pthread_create( &client_conn[thread_count], NULL, connection_handler, (void*) &client_sock ) < 0) {
 			perror("could not create thread");
 			return 1;
 		}
 
+		pthread_join(client_conn[thread_count], NULL);
+
 		puts("handler assigned for client connection\n");
+		thread_count++;
 	}
 
 	if(client_sock < 0) {
@@ -82,8 +95,8 @@ void *connection_handler(void *socket_desc) {
 	int sock = *(int *) socket_desc;
 	char msg[500];
 	int READSIZE;
-	char *message, client_message[2000];
-
+	//char *message, client_message[2000];
+	
 	memset(msg, 0, 500);
 	
 	//read message from the client
@@ -93,19 +106,23 @@ void *connection_handler(void *socket_desc) {
 	if(strcmp(msg, "initTransfer") == 0) {
 		printf("Init Transfer\n");
 		write(sock, "filename", strlen("filename") );
-		//memset(msg, 0, 500);
 	} 
 
 
 	memset(msg, 0, 500);
 	READSIZE = recv(sock, msg, 500, 0);
+	
+	
+
 
 	//if not initTransfer then expect from the client the name of the file
 	if( strcmp(msg, "initTransfer") != 0 && strlen(msg) > 0) { 
 		printf("File\n");
-		write(sock, "begin", strlen("begin") );
+		write( sock, "begin", strlen("begin") );
 		printf("Filename: %s\n", msg);
 		
+		//********lock the thread until the file transfer completes
+		pthread_mutex_lock(&lock);
 
 		//receive file from client
 		char *fr_path = "/home/alex/Desktop/ca2/server_upload_files/";
@@ -124,6 +141,7 @@ void *connection_handler(void *socket_desc) {
 			int fr_block_sz = 0;
 			int i = 0;
 			
+			//get file data from the client
 			while( (fr_block_sz = recv(sock, revbuf, LENGTH, 0) ) > 0 ) {
 				printf("Data received %d = %d\n", i , fr_block_sz);
 				
@@ -146,6 +164,13 @@ void *connection_handler(void *socket_desc) {
 
 		printf("Ok received from the client\n");
 		fclose(fr);
+
+		//pause for 10 seconds to show muliple clients do not transfer simultaneously	
+		sleep(10);
+
+		//***** unlock the thread - now other clients will be able to transfer file
+		pthread_mutex_unlock(&lock);
+	
 	}
 
 
@@ -165,42 +190,4 @@ void *connection_handler(void *socket_desc) {
 }
 
 		
-			
-
-
-
-
-//old code
-	//accept connection from incoming client
-//	cs = accept(s, (struct sockaddr * ) &client, (socklen_t *) &conSize);
-//
-//	if(cs < 0) { 
-//		perror("cant establish connection\n");
-//		return 1 ;
-//	} else  { 
-//		printf("connection from client accepted\n");
-//	}
-//
-//
-//	while(1) { 
-//		memset( message, 0, 500);
-//
-//		READSIZE = recv(cs, message, 2000, 0);
-//
-//		if(READSIZE == 0) {
-//			puts("client disconnected\n");
-//			fflush(stdout);
-//		} else  if (READSIZE == -1) { 
-//			perror("read error\n");
-//		}
-//
-//
-//
-//		printf("Client said: %s\n", message);
-//
-//		write(cs, "what??\n", strlen("what??\n"));
-//	}
-//	
-//
-//	return 0;
 

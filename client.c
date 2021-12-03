@@ -19,6 +19,10 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	} 
 
+
+	uid_t uid = getuid();
+	printf("uid of the user is %d\n", uid);
+
 	int SID;
 	struct sockaddr_in server;
 	char clientMessage[500];
