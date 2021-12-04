@@ -158,7 +158,11 @@ void *connection_handler(void *socket_desc) {
 		pthread_mutex_lock(&lock);
 
 		//receive file from client
-		char *fr_path = "/home/alex/Desktop/ca2/server_upload_files/";
+		char fr_path[200] = "/home/alex/Desktop/ca2/server_upload_files/";
+	       	strcat( fr_path, destination);
+		strcat( fr_path, "/");
+		printf("File read path is %s\n", fr_path);
+
 		char revbuf[LENGTH];
 		char *fr_name = (char *) malloc( 1 + strlen(fr_path) + strlen(msg) );
 		strcpy( fr_name, fr_path );
