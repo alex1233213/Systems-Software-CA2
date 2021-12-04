@@ -96,18 +96,18 @@ void *connection_handler(void *socket_desc) {
 	int sock = *(int *) socket_desc;
 	char msg[500];
 	int READSIZE;
-	gid_t client_usr_group;
+	uid_t client_usr_id;
 	char destination[20];
 	
-	//1. receive the client user group first	
-	READSIZE = recv(sock, &client_usr_group, sizeof(client_usr_group), 0);
+	//1. receive the user id from the client	
+	READSIZE = recv(sock, &client_usr_id, sizeof(client_usr_id), 0);
 
 	if(READSIZE == -1) { 
 		printf("Error occurred in recv() call\n");
 		exit(1);
 	} else { 
-		client_usr_group = ntohl(client_usr_group);
-		printf( "client group id is %d\n", client_usr_group );
+		client_usr_id = ntohl(client_usr_id);
+		printf( "client id is %d\n", client_usr_id );
 	}
 
 
