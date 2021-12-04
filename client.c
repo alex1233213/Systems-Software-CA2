@@ -14,8 +14,8 @@ int main(int argc, char *argv[]) {
 	//expect 2 arguments, 
 	//first arg - program name 
 	//seconds arg - file to be transferred
-	if(argc != 2) {
-		printf("Invalid number of arguments, usage: ./client <file-name>\n");
+	if(argc != 3) {
+		printf("Invalid number of arguments, usage: ./client <file-name> <destination>\n");
 		exit(1);
 	} 
 
@@ -27,6 +27,17 @@ int main(int argc, char *argv[]) {
 	//char *filename = "index.html";
 	char *filename = argv[1];
 	printf("File name passed from argument: %s\n", filename);
+	char *destination = argv[2]; 
+
+	//if the user did not enter manufacturing or distribution in argv[2]
+	if( !(strcmp(destination, "manufacturing") == 0 
+			||
+		strcmp(destination, "distribution") == 0 ) 
+	  ) 	{ 
+			printf("invalid destination folder, must be distribution or manufacturing\n");
+			exit(1);
+		}
+
 
 	//create socket
 	SID = socket(AF_INET, SOCK_STREAM, 0);
@@ -54,7 +65,7 @@ int main(int argc, char *argv[]) {
 	//get the group id of the user 
 	gid_t usr_group = getuid();
 	gid_t converted_usr_group = htonl(usr_group);
-	printf("group id  of the user is %d\n", converted_usr_group);
+	printf("sending group id of the user to the server\n");
 
 
 	//send the group id of the user to the server
@@ -62,6 +73,12 @@ int main(int argc, char *argv[]) {
 		printf("send failed");
 	     	return 1;	
 	}
+
+
+
+	//send the destination to the server
+//	if( write(SID, destinatin
+
 
 
 

@@ -99,16 +99,27 @@ void *connection_handler(void *socket_desc) {
 	gid_t client_usr_group;
 	
 	
-	//receive the client user group first	
+	//1. receive the client user group first	
 	READSIZE = recv(sock, &client_usr_group, sizeof(client_usr_group), 0);
 
 	if(READSIZE == -1) { 
 		printf("Error occurred in recv() call\n");
 		exit(1);
 	} else { 
-		printf( "client group id is %d\n", ntohl(client_usr_group) );
-		//write( sock, "groupIdRecv", strlen("groupIdRecv") );
+		client_usr_group = ntohl(client_usr_group);
+		printf( "client group id is %d\n", client_usr_group );
 	}
+
+
+
+	memset(msg, 0, 500);
+	
+	// 2. receive the destination path from the client
+	//read the destination path
+//	READSIZE = recv(sock, msg, 500, 0);
+
+
+
 
 
 	memset(msg, 0, 500);
