@@ -76,9 +76,19 @@ int main(int argc, char *argv[]) {
 
 
 
-	//send the destination to the server
-//	if( write(SID, destinatin
+	//send the destination directory to the server
+	if( write(SID, destination, strlen(destination)) < 0) { 
+		printf("send failed\n");
+       		return 1;
+	}
 
+
+	 
+	if( recv(SID, serverMessage, strlen("destinationReceived"), 0) < 0)
+	{
+		printf("recv() error\n");
+		return 1;
+	}
 
 
 

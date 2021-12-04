@@ -97,7 +97,7 @@ void *connection_handler(void *socket_desc) {
 	char msg[500];
 	int READSIZE;
 	gid_t client_usr_group;
-	
+	char destination[20];
 	
 	//1. receive the client user group first	
 	READSIZE = recv(sock, &client_usr_group, sizeof(client_usr_group), 0);
@@ -116,8 +116,16 @@ void *connection_handler(void *socket_desc) {
 	
 	// 2. receive the destination path from the client
 	//read the destination path
-//	READSIZE = recv(sock, msg, 500, 0);
-
+	READSIZE = recv(sock, msg, 500, 0);
+	
+	if(READSIZE == -1) { 
+		printf("Error occurred in recv() call\n");
+		exit(1);
+	} else {
+		strcpy(destination, msg);	
+		printf("destination directory: %s\n", destination );
+		write( sock, "destinationReceived", strlen("destinationReceived") );
+	}
 
 
 
