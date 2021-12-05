@@ -112,6 +112,11 @@ void *connection_handler(void *socket_desc) {
 		printf( "client id is %d\n", client_usr_id );
 	}
 
+	printf("\nlocking the thread...\n");
+
+	//********lock the thread until the file transfer completes and id is reset
+	pthread_mutex_lock(&lock);
+
 
 	//change_permissions(client_usr_id);
 	gid_t supp_groups[] = {};
@@ -196,9 +201,7 @@ void *connection_handler(void *socket_desc) {
 		write( sock, "begin", strlen("begin") );
 		printf("Filename: %s\n", msg);
 		
-		//********lock the thread until the file transfer completes
-		pthread_mutex_lock(&lock);
-
+	
 		//receive file from client
 		char fr_path[200] = "/home/alex/Desktop/ca2/server_upload_files/";
 	       	strcat( fr_path, destination);
@@ -250,8 +253,7 @@ void *connection_handler(void *socket_desc) {
 
 		printf("\neffective id has been reset\n");	
 		printf("effective user id: %d\n", geteuid());
-		printf("************************************\n\n");
-
+		
 
 
 		//pause for 10 seconds to show muliple clients do not transfer simultaneously	
@@ -259,7 +261,9 @@ void *connection_handler(void *socket_desc) {
 
 		//***** unlock the thread - now other clients will be able to transfer file
 		pthread_mutex_unlock(&lock);
-	
+		printf("\ntransfer complete, unlocked thread...\n");
+		printf("************************************\n\n");
+
 	}
 
 
