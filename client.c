@@ -62,13 +62,13 @@ int main(int argc, char *argv[]) {
 	printf("Connected to the server ok\n");
 
 	
-	//get the group id of the user 
+	//get the id of the user 
 	uid_t usr_id = getuid();
 	uid_t converted_usr_id = htonl(usr_id);
 	printf("sending id of the user to the server\n");
 
 
-	//send the group id of the user to the server
+	//send the id of the user to the server
 	if( write(SID, &converted_usr_id, sizeof(converted_usr_id)) < 0) {
 		printf("send failed");
 	     	return 1;	

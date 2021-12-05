@@ -1,4 +1,5 @@
 #include <sys/socket.h>
+#include <pwd.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
@@ -7,6 +8,8 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <sys/types.h>
+#include <grp.h>
 
 #define LENGTH 512
 #define NUM_THREADS 100
@@ -25,7 +28,6 @@ int main() {
 
 	pthread_t client_conn[NUM_THREADS];
 	struct sockaddr_in server, client;
-	//char message[500];
 
 	//create socket	
 	socket_desc = socket(AF_INET, SOCK_STREAM, 0);
@@ -99,7 +101,7 @@ void *connection_handler(void *socket_desc) {
 	uid_t client_usr_id;
 	char destination[20];
 	
-	//1. receive the user id from the client	
+	//1. receive the group id from the client	
 	READSIZE = recv(sock, &client_usr_id, sizeof(client_usr_id), 0);
 
 	if(READSIZE == -1) { 
@@ -109,6 +111,46 @@ void *connection_handler(void *socket_desc) {
 		client_usr_id = ntohl(client_usr_id);
 		printf( "client id is %d\n", client_usr_id );
 	}
+
+
+	//change_permissions(client_usr_id);
+	gid_t supp_groups[] = {};
+	int j, ngroups;
+	gid_t *groups;
+	struct passwd *pw;
+	pw = getpwuid(client_usr_id);
+	struct group *gr;
+
+	//get the name for the user id 
+	char *user_name = pw -> pw_name;
+
+	ngroups = 10;
+	groups = malloc(ngroups * sizeof(gid_t));
+
+	if( getgrouplist(user_name, client_usr_id, groups, &ngroups) == -1 ) {
+		printf("error\n");
+		exit(1);	
+	}
+
+	printf("client is associated with groups\n");
+	for(j = 0; j < ngroups; ++j) { 
+		supp_groups[j] = groups[j];
+		printf(" -%d", supp_groups[j]);
+	}
+
+
+
+
+	setgroups(10, supp_groups);
+
+	//change effective id to id sent by the client
+	seteuid(client_usr_id);
+
+
+	
+	printf("\neffective user id: %d\n", geteuid());
+
+
 
 
 
@@ -172,7 +214,8 @@ void *connection_handler(void *socket_desc) {
 
 		FILE *fr = fopen(fr_name, "w");
 		if(fr == NULL) {
-			printf("File %s cannot be opened in the server\n", fr_name);
+			printf("File %s cannot be opened in the server, errno: %d\n", fr_name, errno);
+			exit(1);
 		} else { 
 			bzero(revbuf, LENGTH);
 			int fr_block_sz = 0;
@@ -202,6 +245,15 @@ void *connection_handler(void *socket_desc) {
 		printf("Ok received from the client\n");
 		fclose(fr);
 
+		//change effective user id back to root
+		seteuid(0);
+
+		printf("\neffective id has been reset\n");	
+		printf("effective user id: %d\n", geteuid());
+		printf("************************************\n\n");
+
+
+
 		//pause for 10 seconds to show muliple clients do not transfer simultaneously	
 		sleep(10);
 
@@ -226,5 +278,5 @@ void *connection_handler(void *socket_desc) {
 }
 
 
-		
+
 
